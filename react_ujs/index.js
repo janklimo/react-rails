@@ -1,24 +1,28 @@
-var React = require("react")
-var ReactDOM = require("react-dom")
-var ReactDOMServer = require("react-dom/server")
+import React from "react";
+import ReactDOM from "react-dom";
+import ReactDOMServer from "react-dom/server";
+import {
+  createReactRootLike,
+  reactHydrate,
+  supportsHydration,
+} from "./src/renderHelpers";
 
-var detectEvents = require("./src/events/detect")
-var constructorFromGlobal = require("./src/getConstructor/fromGlobal")
-var constructorFromRequireContext = require("./src/getConstructor/fromRequireContext")
-var constructorFromRequireContextWithGlobalFallback = require("./src/getConstructor/fromRequireContextWithGlobalFallback")
-const { supportsHydration, reactHydrate, createReactRootLike } = require("./src/renderHelpers")
+import detectEvents from "./src/events/detect";
+import constructorFromGlobal from "./src/getConstructor/fromGlobal";
+import constructorFromRequireContext from "./src/getConstructor/fromRequireContext";
+import constructorFromRequireContextWithGlobalFallback from "./src/getConstructor/fromRequireContextWithGlobalFallback";
 
 var ReactRailsUJS = {
   // This attribute holds the name of component which should be mounted
   // example: `data-react-class="MyApp.Items.EditForm"`
-  CLASS_NAME_ATTR: 'data-react-class',
+  CLASS_NAME_ATTR: "data-react-class",
 
   // This attribute holds JSON stringified props for initializing the component
   // example: `data-react-props="{\"item\": { \"id\": 1, \"name\": \"My Item\"} }"`
-  PROPS_ATTR: 'data-react-props',
+  PROPS_ATTR: "data-react-props",
 
   // This attribute holds which method to use between: ReactDOM.hydrate, ReactDOM.render
-  RENDER_ATTR: 'data-hydrate',
+  RENDER_ATTR: "data-hydrate",
 
   // A unique identifier to identify a node
   CACHE_ID_ATTR: "data-react-cache-id",
@@ -26,31 +30,41 @@ var ReactRailsUJS = {
   TURBOLINKS_PERMANENT_ATTR: "data-turbolinks-permanent",
 
   // If jQuery is detected, save a reference to it for event handlers
-  jQuery: (typeof window !== 'undefined') && (typeof window.jQuery !== 'undefined') && window.jQuery,
+  jQuery:
+    typeof window !== "undefined" &&
+    typeof window.jQuery !== "undefined" &&
+    window.jQuery,
 
   components: {},
 
   // helper method for the mount and unmount methods to find the
   // `data-react-class` DOM elements
-  findDOMNodes: function(searchSelector) {
-    var classNameAttr = ReactRailsUJS.CLASS_NAME_ATTR
+  findDOMNodes: function (searchSelector) {
+    var classNameAttr = ReactRailsUJS.CLASS_NAME_ATTR;
     // we will use fully qualified paths as we do not bind the callbacks
     var selector, parent;
 
     switch (typeof searchSelector) {
-      case 'undefined':
-        selector = '[' + classNameAttr + ']';
+      case "undefined":
+        selector = "[" + classNameAttr + "]";
         parent = document;
         break;
-      case 'object':
-        selector = '[' + classNameAttr + ']';
+      case "object":
+        selector = "[" + classNameAttr + "]";
         parent = searchSelector;
         break;
-      case 'string':
-        selector = searchSelector + '[' + classNameAttr + '], ' +
-                   searchSelector + ' [' + classNameAttr + ']';
+      case "string":
+        selector =
+          searchSelector +
+          "[" +
+          classNameAttr +
+          "], " +
+          searchSelector +
+          " [" +
+          classNameAttr +
+          "]";
         parent = document;
-        break
+        break;
       default:
         break;
     }
@@ -70,27 +84,29 @@ var ReactRailsUJS = {
   // Available for customizing `getConstructor`
   constructorFromGlobal: constructorFromGlobal,
   constructorFromRequireContext: constructorFromRequireContext,
-  constructorFromRequireContextWithGlobalFallback: constructorFromRequireContextWithGlobalFallback,
+  constructorFromRequireContextWithGlobalFallback:
+    constructorFromRequireContextWithGlobalFallback,
 
   // Given a Webpack `require.context`,
   // try finding components with `require`,
   // then falling back to global lookup.
-  useContext: function(requireContext) {
-    this.getConstructor = constructorFromRequireContextWithGlobalFallback(requireContext)
+  useContext: function (requireContext) {
+    this.getConstructor =
+      constructorFromRequireContextWithGlobalFallback(requireContext);
   },
 
   // Render `componentName` with `props` to a string,
   // using the specified `renderFunction` from `react-dom/server`.
-  serverRender: function(renderFunction, componentName, props) {
-    var componentClass = this.getConstructor(componentName)
-    var element = React.createElement(componentClass, props)
-    return ReactDOMServer[renderFunction](element)
+  serverRender: function (renderFunction, componentName, props) {
+    var componentClass = this.getConstructor(componentName);
+    var element = React.createElement(componentClass, props);
+    return ReactDOMServer[renderFunction](element);
   },
 
   // Within `searchSelector`, find nodes which should have React components
   // inside them, and mount them with their props.
-  mountComponents: function(searchSelector) {
-    var ujs = ReactRailsUJS
+  mountComponents: function (searchSelector) {
+    var ujs = ReactRailsUJS;
     var nodes = ujs.findDOMNodes(searchSelector);
 
     for (var i = 0; i < nodes.length; ++i) {
@@ -101,19 +117,28 @@ var ReactRailsUJS = {
       var props = propsJson && JSON.parse(propsJson);
       var hydrate = node.getAttribute(ujs.RENDER_ATTR);
       var cacheId = node.getAttribute(ujs.CACHE_ID_ATTR);
-      var turbolinksPermanent = node.hasAttribute(ujs.TURBOLINKS_PERMANENT_ATTR);
+      var turbolinksPermanent = node.hasAttribute(
+        ujs.TURBOLINKS_PERMANENT_ATTR
+      );
 
       if (!constructor) {
-        var message = "Cannot find component: '" + className + "'"
+        var message = "Cannot find component: '" + className + "'";
         if (console && console.log) {
-          console.log("%c[react-rails] %c" + message + " for element", "font-weight: bold", "", node)
+          console.log(
+            "%c[react-rails] %c" + message + " for element",
+            "font-weight: bold",
+            "",
+            node
+          );
         }
-        throw new Error(message + ". Make sure your component is available to render.")
+        throw new Error(
+          message + ". Make sure your component is available to render."
+        );
       } else {
         var component = this.components[cacheId];
-        if(component === undefined) {
+        if (component === undefined) {
           component = React.createElement(constructor, props);
-          if(turbolinksPermanent) {
+          if (turbolinksPermanent) {
             this.components[cacheId] = component;
           }
         }
@@ -121,7 +146,7 @@ var ReactRailsUJS = {
         if (hydrate && supportsHydration()) {
           component = reactHydrate(node, component);
         } else {
-          const root = createReactRootLike(node)
+          const root = createReactRootLike(node);
           component = root.render(component);
         }
       }
@@ -130,7 +155,7 @@ var ReactRailsUJS = {
 
   // Within `searchSelector`, find nodes which have React components
   // inside them, and unmount those components.
-  unmountComponents: function(searchSelector) {
+  unmountComponents: function (searchSelector) {
     var nodes = ReactRailsUJS.findDOMNodes(searchSelector);
 
     for (var i = 0; i < nodes.length; ++i) {
@@ -143,38 +168,36 @@ var ReactRailsUJS = {
   // and figure out which library to hook up to (pjax, Turbolinks, jQuery)
   // This is called on load, but you can call it again if needed
   // (It will unmount itself)
-  detectEvents: function() {
-    detectEvents(this)
+  detectEvents: function () {
+    detectEvents(this);
   },
-
-}
+};
 
 // These stable references are so that handlers can be added and removed:
-ReactRailsUJS.handleMount = function(e) {
+ReactRailsUJS.handleMount = function (e) {
   var target = undefined;
   if (e && e.target) {
     target = e.target;
   }
   ReactRailsUJS.mountComponents(target);
-}
-ReactRailsUJS.handleUnmount = function(e) {
+};
+ReactRailsUJS.handleUnmount = function (e) {
   var target = undefined;
   if (e && e.target) {
     target = e.target;
   }
   ReactRailsUJS.unmountComponents(target);
-}
-
+};
 
 if (typeof window !== "undefined") {
   // Only setup events for browser (not server-rendering)
-  ReactRailsUJS.detectEvents()
+  ReactRailsUJS.detectEvents();
 }
 
 // It's a bit of a no-no to populate the global namespace,
 // but we really need it!
 // We need access to this object for server rendering, and
 // we can't do a dynamic `require`, so we'll grab it from here:
-self.ReactRailsUJS = ReactRailsUJS
+self.ReactRailsUJS = ReactRailsUJS;
 
-module.exports = ReactRailsUJS
+export default ReactRailsUJS;

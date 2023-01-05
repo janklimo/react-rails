@@ -1,10 +1,8 @@
-module.exports = {
-  // Turbolinks 5+ got rid of named events (?!)
-  setup: function(ujs) {
-  	ujs.handleEvent('turbolinks:load', ujs.handleMount);
-  },
+// Turbolinks 5+ got rid of named events (?!)
+export function setup(ujs) {
+  ujs.handleEvent("turbolinks:load", ujs.handleMount);
+}
 
-  teardown: function(ujs) {
-  	ujs.removeEvent('turbolinks:load', ujs.handleMount);
-  },
+export function teardown(ujs) {
+  ujs.removeEvent("turbolinks:load", ujs.handleMount);
 }
