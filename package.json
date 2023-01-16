@@ -1,6 +1,6 @@
 {
   "name": "@janklimo/react_ujs",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Rails UJS for the react-rails gem",
   "main": "react_ujs/index.js",
   "files": [
