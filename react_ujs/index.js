@@ -8,9 +8,6 @@ import {
 } from "./src/renderHelpers";
 
 import detectEvents from "./src/events/detect";
-import constructorFromGlobal from "./src/getConstructor/fromGlobal";
-import constructorFromRequireContext from "./src/getConstructor/fromRequireContext";
-import constructorFromRequireContextWithGlobalFallback from "./src/getConstructor/fromRequireContextWithGlobalFallback";
 
 var ReactRailsUJS = {
   // This attribute holds the name of component which should be mounted
@@ -79,21 +76,10 @@ var ReactRailsUJS = {
   // Get the constructor for a className (returns a React class)
   // Override this function to lookup classes in a custom way,
   // the default is ReactRailsUJS.ComponentGlobal
-  getConstructor: constructorFromGlobal,
-
-  // Available for customizing `getConstructor`
-  constructorFromGlobal: constructorFromGlobal,
-  constructorFromRequireContext: constructorFromRequireContext,
-  constructorFromRequireContextWithGlobalFallback:
-    constructorFromRequireContextWithGlobalFallback,
-
-  // Given a Webpack `require.context`,
-  // try finding components with `require`,
-  // then falling back to global lookup.
-  useContext: function (requireContext) {
-    this.getConstructor =
-      constructorFromRequireContextWithGlobalFallback(requireContext);
-  },
+  getConstructor: (name) =>
+    console.error(
+      `getConstructor lookup needs to be defined (${name} requested).`
+    ),
 
   // Render `componentName` with `props` to a string,
   // using the specified `renderFunction` from `react-dom/server`.
